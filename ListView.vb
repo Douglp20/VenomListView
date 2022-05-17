@@ -1,4 +1,6 @@
-﻿Public Class ListView
+﻿Imports System.Drawing
+Imports System.Drawing.Color
+Public Class ListView
 
     Public Event ErrorMessage(ByVal errDesc As String, ByVal errNo As Integer, ByVal errTrace As String)
 
@@ -8,6 +10,20 @@
         RaiseEvent ErrorMessage(errDesc, errNo, errTrace)
     End Sub
     Public Sub New()
+    End Sub
+    Public Sub StandardHeader(lvw As Windows.Forms.ListView)
+
+
+        With lvw
+            .OwnerDraw = True
+            '    .DrawColumnHeader = New DrawListViewColumnHeaderEventHandler((sender, e) >= headerDraw(sender, e, System.Drawing.Color.Black, System.Drawing.Color.White)
+            ')
+            '    .DrawItem += New DrawListViewItemEventHandler(bodyDraw)
+        End With
+
+
+
+
     End Sub
     Public Sub CopyCheckedRow(lvw_from As System.Windows.Forms.ListView, lvw_to As System.Windows.Forms.ListView)
         On Error GoTo Err
@@ -99,7 +115,30 @@ Err:
         Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
         RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
     End Sub
-    Public Function GetValueFromColumn(lvw As Windows.Forms.ListView, selectIndex As Integer) As ArrayList
+    '    Public Function GetValueFromColumn(lvw As Windows.Forms.ListView, selectIndex As Integer) As ArrayList
+
+    '        Dim lngID As Integer
+    '        Dim lngCol As Integer = lvw.Columns.Count
+    '        Dim lngRow As Integer = lvw.Items.Count
+    '        Dim strvalue As String
+    '        Dim arr As New ArrayList
+
+
+    '        On Error GoTo Err
+    '        For c As Integer = 0 To lngCol - 1
+    '            arr.Add(lvw.Items(selectIndex).SubItems(c).Text)
+    '        Next
+
+    '        Return arr
+
+    '        Exit Function
+
+    'Err:
+    '        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+    '        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+
+    '    End Function
+    Public Function GetRowValues(lvw As Windows.Forms.ListView, selectIndex As Integer) As ArrayList
 
         Dim lngID As Integer
         Dim lngCol As Integer = lvw.Columns.Count
@@ -223,6 +262,79 @@ Err:
         RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
 
     End Sub
+    Public Sub LoadCalendar(ByRef lvw As System.Windows.Forms.ListView, ByRef ds As DataSet)
+
+        On Error GoTo Err
+
+
+        Dim lcols As Integer = lvw.Columns.Count
+        Dim lrows As Integer = ds.Tables(0).Rows.Count
+        Dim lViewItem As System.Windows.Forms.ListViewItem
+        Dim r As Integer
+        Dim colTag As String
+        Dim dsField As String
+        Dim dataType As String
+        Dim SameStartTime As String = String.Empty
+        Const firstCol = 1
+
+        lvw.Items.Clear()
+        If lrows > 0 Then
+
+            For Each rows In ds.Tables(0).Rows
+                lViewItem = New Windows.Forms.ListViewItem(ds.Tables(0).Rows(r).Item(0).ToString())
+                For c As Integer = 1 To lcols - 1
+                    dataType = rows.Table.Columns(c).DataType().ToString
+                    ' colTag = lvw.Columns(c).Tag.ToString
+                    If Not System.Convert.IsDBNull(ds.Tables(0).Rows(r).Item(c)) Then
+
+                        Select Case dataType.ToString
+                            Case "System.Bit"
+                                If ds.Tables(0).Rows(r).Item(c) = 0 Then
+                                    lViewItem.SubItems.Add("No")
+                                Else
+                                    lViewItem.SubItems.Add("Yes")
+                                End If
+                            Case "System.Boolean"
+                                If ds.Tables(0).Rows(r).Item(c) = True Then
+                                    lViewItem.SubItems.Add("Yes")
+                                Else
+                                    lViewItem.SubItems.Add("No")
+                                End If
+                            Case "System.Decimal"
+                                lViewItem.SubItems.Add(CDbl(ds.Tables(0).Rows(r).Item(c)))
+                            Case Else
+                                If firstCol = c Then
+                                    If SameStartTime = ds.Tables(0).Rows(r).Item(c) Then
+                                        lViewItem.SubItems.Add("")
+                                    Else
+                                        lViewItem.SubItems.Add(ds.Tables(0).Rows(r).Item(c))
+                                        SameStartTime = ds.Tables(0).Rows(r).Item(c)
+                                    End If
+                                Else
+                                    lViewItem.SubItems.Add(ds.Tables(0).Rows(r).Item(c))
+                                End If
+
+                        End Select
+
+                    Else
+                        lViewItem.SubItems.Add("")
+                    End If
+
+                Next
+                r = r + 1
+                lvw.Items.Add(lViewItem)
+            Next
+
+
+        End If
+
+        Exit Sub
+
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+
+    End Sub
     Public Function ID(lvw As System.Windows.Forms.ListView)
         On Error GoTo Err
 
@@ -243,7 +355,7 @@ Err:
         Dim tag As String = String.Empty
 
         Try
-            If lvw.Columns(col).Tag = String.Empty.Equals(Nothing) Then
+            If lvw.Columns(col).Tag = String.Empty Then
                 tag = ""
             End If
         Catch ex As Exception
@@ -395,7 +507,7 @@ Err:
                 For i As Integer = 0 To lrows - 1
                     If i = lrows Then Exit For
                     lvw.Items(i).BackColor = Drawing.Color.White
-                    If lvw.Items(i).SubItems(Col).Text = ColValue Then
+                    If UCase(lvw.Items(i).SubItems(Col).Text) = UCase(ColValue) Then
                         lvw.Items(i).BackColor = colour
                     End If
                 Next
@@ -446,6 +558,31 @@ Err:
                 If lvw.Items(i).Checked = True Then
                     returnValue = True
                     Exit For
+                End If
+            Next
+        End If
+
+        Return returnValue
+
+        Exit Function
+
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+    End Function
+    Public Function CheckBoxSelectedAmount(lvw As System.Windows.Forms.ListView) As Integer
+        On Error GoTo Err
+
+
+        Dim lrows As Integer = lvw.Items.Count
+        Dim lViewItem As System.Windows.Forms.ListViewItem
+        Dim r As Integer
+        Dim returnValue As Integer = 0
+
+        If lrows > 0 Then
+            For i As Integer = 0 To lrows - 1
+                If lvw.Items(i).Checked = True Then
+                    returnValue = returnValue + 1
                 End If
             Next
         End If
@@ -563,6 +700,35 @@ Err:
 
     End Sub
 
+    Public Function GetCountValueInColumn(lvw As System.Windows.Forms.ListView, Col As Integer, Value As String) As String
 
+
+        On Error GoTo Err
+
+
+        Dim lrows As Integer
+        Dim lViewItem As System.Windows.Forms.ListViewItem
+        Dim ReturnCount As String = 0
+        If lvw.Items.Count > 0 Then
+            lrows = lvw.Items.Count
+
+
+            If lrows > 0 Then
+                For r As Integer = 0 To lrows - 1
+                    If lvw.Items(r).SubItems.Item(Col).Text = Value Then
+                        ReturnCount = ReturnCount + 1
+                    End If
+                Next
+            End If
+        End If
+
+        Return ReturnCount
+
+        Exit Function
+
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+    End Function
 
 End Class
