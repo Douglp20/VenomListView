@@ -213,7 +213,7 @@ Err:
         Dim colTag As String
         Dim dsField As String
         Dim dataType As String
-
+        Dim CheckColBoolean As Boolean
         lvw.Items.Clear()
         If lrows > 0 Then
 
@@ -246,14 +246,73 @@ Err:
                     Else
                         lViewItem.SubItems.Add("")
                     End If
-
                 Next
-                r = r + 1
                 lvw.Items.Add(lViewItem)
+                r = r + 1
             Next
-
-
         End If
+
+        Exit Sub
+
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+
+    End Sub
+    Public Sub LoadCheckBox(ByRef lvw As System.Windows.Forms.ListView, ByRef ds As DataSet)
+
+        On Error GoTo Err
+
+
+        Dim lcols As Integer = lvw.Columns.Count
+        Dim lrows As Integer = ds.Tables(0).Rows.Count
+        Dim lViewItem As System.Windows.Forms.ListViewItem
+        Dim r As Integer
+        Dim colTag As String
+        Dim dsField As String
+        Dim dataType As String
+        Dim CheckColBoolean As Boolean
+        lvw.Items.Clear()
+        If lrows > 0 Then
+
+            For Each rows In ds.Tables(0).Rows
+                lViewItem = New Windows.Forms.ListViewItem(ds.Tables(0).Rows(r).Item(0).ToString())
+                For c As Integer = 1 To lcols - 1
+                    dataType = rows.Table.Columns(c).DataType().ToString
+                    ' colTag = lvw.Columns(c).Tag.ToString
+                    If Not System.Convert.IsDBNull(ds.Tables(0).Rows(r).Item(c)) Then
+
+                        Select Case dataType.ToString
+                            Case "System.Bit"
+                                If ds.Tables(0).Rows(r).Item(c) = 0 Then
+                                    lViewItem.SubItems.Add("No")
+                                Else
+                                    lViewItem.SubItems.Add("Yes")
+                                End If
+                            Case "System.Boolean"
+                                If ds.Tables(0).Rows(r).Item(c) = True Then
+                                    lViewItem.SubItems.Add("Yes")
+                                Else
+                                    lViewItem.SubItems.Add("No")
+                                End If
+                            Case "System.Decimal"
+                                lViewItem.SubItems.Add(CDbl(ds.Tables(0).Rows(r).Item(c)))
+                            Case Else
+                                lViewItem.SubItems.Add(ds.Tables(0).Rows(r).Item(c))
+                        End Select
+
+                    Else
+                        lViewItem.SubItems.Add("")
+                    End If
+                Next
+                lvw.Items.Add(lViewItem)
+                r = r + 1
+            Next
+        End If
+
+        For rc As Integer = 0 To lvw.Items.Count - 1
+            lvw.Items(rc).Checked = (CLng(lvw.Items(rc).SubItems(1).Text) = 1 Or lvw.Items(rc).SubItems(1).Text = "Yes")
+        Next
 
         Exit Sub
 
