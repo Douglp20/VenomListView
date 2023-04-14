@@ -409,6 +409,21 @@ Err:
         Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
         RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
     End Function
+    Public Function IDString(lvw As System.Windows.Forms.ListView)
+        On Error GoTo Err
+
+        Dim _IDString As String
+        If (lvw.SelectedItems.Count > 0) Then
+            _IDString = lvw.SelectedItems(0).Text
+        Else
+            _IDString = String.Empty
+        End If
+        Return _IDString
+        Exit Function
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+    End Function
     Public Function GetColumnTag(lvw As System.Windows.Forms.ListView, col As Integer) As String
 
         Dim tag As String = String.Empty
