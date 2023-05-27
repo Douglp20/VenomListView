@@ -502,6 +502,8 @@ Err:
         Try
             If lvw.Columns(col).Tag = String.Empty Then
                 tag = ""
+            Else
+                Return lvw.Columns(col).Tag
             End If
         Catch ex As Exception
             If (lvw.Items.Count > 0) Then
