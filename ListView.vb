@@ -1,5 +1,7 @@
 ﻿Imports System.Drawing
 Imports System.Drawing.Color
+Imports System.Windows.Forms
+
 Public Class ListView
 
     Public Event ErrorMessage(ByVal errDesc As String, ByVal errNo As Integer, ByVal errTrace As String)
@@ -792,7 +794,9 @@ Err:
                     If criteria = lvw.Items(r).SubItems(c).Text.ToString() Then
                         lvw.Focus()
                         lvw.Items(r).Selected = True
-
+                        lvw.TopItem = lvw.Items(r)
+                        lvw.Items(r).EnsureVisible()
+                        '' lvw.EnsureVisible(r)
                         Exit For
                     End If
                 Next
@@ -805,6 +809,47 @@ Err:
 Err:
         Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
         RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+
+    End Sub
+    Public Function FindByColumn(ByRef lvw As System.Windows.Forms.ListView, criteria As String, Column As Integer) As Boolean
+
+        On Error GoTo Err
+        FindByColumn = False
+
+        Dim rows As Integer = lvw.Items.Count
+        Dim cols As Integer = lvw.Columns.Count
+        Dim Result As Boolean = False
+
+        If rows > 0 Then
+            For r As Integer = 0 To rows - 1
+                Result = UCase(lvw.Items(r).SubItems(Column).Text.ToString()) Like UCase(criteria) + "*"
+                If Result Then
+                    'UCase(lvw.Items(r).SubItems(Column).Text.ToString())  String Like UCase(criteria) Then
+                    lvw.Focus()
+                    lvw.Items(r).Selected = True
+                    FindByColumn = True
+                    Exit For
+                End If
+
+            Next
+        End If
+
+        Return FindByColumn
+
+        Exit Function
+
+Err:
+        Dim rtn As String = "The error occur within the module " + System.Reflection.MethodBase.GetCurrentMethod().Name + " : " + Me.ToString() + "."
+        RaiseEvent ErrorMessage(Err.Description, Err.Number, rtn)
+
+    End Function
+    Public Sub StandardFormat(ByRef lvw As System.Windows.Forms.ListView)
+
+        With lvw
+            .BackColor = System.Drawing.Color.LightYellow
+            .Font = New Font("Microsoft Sans Serif", 8, FontStyle.Regular)
+            .ForeColor = System.Drawing.Color.Black
+        End With
 
     End Sub
     Public Sub Sort(ByRef lvw As System.Windows.Forms.ListView, e As System.Windows.Forms.ColumnClickEventArgs)
